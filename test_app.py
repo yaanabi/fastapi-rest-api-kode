@@ -129,7 +129,7 @@ def test_create_note_success_no_spellcheck(client: TestClient,
     assert response.status_code == 201
     assert response.json()['title'] == "название запски"
     assert response.json()['content'] == "содержание замткеи"
-    assert response.json()['author']['username'] == "user1"
+    assert response.json()['author_username'] == "user1"
 
 
 def test_create_note_fail_spellcheck(client: TestClient, access_token: str):

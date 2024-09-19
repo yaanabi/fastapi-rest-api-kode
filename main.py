@@ -1,6 +1,7 @@
 from typing import Annotated
 from pydantic import BaseModel, ValidationError
 
+from fastapi.responses import RedirectResponse
 from fastapi import FastAPI, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -89,6 +90,11 @@ def get_current_user(token: str = Depends(oauth2_scheme),
     if user is None:
         raise user_not_found_exception
     return user
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.post("/token")

@@ -106,6 +106,54 @@ def test_create_note_success_missing_content(client: TestClient,
                            params={"dont_spellcheck": True})
     assert response.status_code == 201
 
+def test_update_note_success(client: TestClient, access_token: str):
+    response = client.put("/notes/1",
+                            headers={"Authorization": f"Bearer {access_token}"},
+                            data={"title": "Some title",
+                                  "content": "Some content"})
+    assert response.status_code == 200
+
+def test_update_note_fail_non_auth(client: TestClient):
+    response = client.put("/notes/1",
+                            headers={"Authorization": f"Bearer"},
+                            data={"title": "Some title",
+                                  "content": "Some content"})
+    assert response.status_code == 401
+
+def test_delete_note_fail_non_auth(client: TestClient):
+    response = client.delete("/notes/1")
+    assert response.status_code == 401
+
+def test_update_note_fail_missing_title(client: TestClient, access_token: str):
+    response = client.put("/notes/1",
+                            headers={"Authorization": f"Bearer {access_token}"},
+                            data={"content": "Some content"})
+    assert response.status_code == 422
+
+def test_update_note_fail_wrong_user(client: TestClient):
+    response = client.post("/token",
+                           data={
+                               "username": 'admin',
+                               "password": "admin123"
+                           })
+    access_token = response.json()["access_token"]
+
+    response = client.put("/notes/1",
+                            headers={"Authorization": f"Bearer {access_token}"},
+                            data={"title": "Some title",
+                                  "content": "Some content"})
+    assert response.status_code == 403
+
+def test_delete_note_fail_wrong_user(client: TestClient):
+    response = client.post("/token",
+                           data={
+                               "username": 'admin',
+                               "password": "admin123"
+                           })
+    access_token = response.json()["access_token"]
+    response = client.delete("/notes/1",
+                            headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
 
 def test_read_note_fail_non_auth(client: TestClient):
     response = client.get("/notes/1")
@@ -115,6 +163,23 @@ def test_read_note_fail_non_auth(client: TestClient):
 def test_read_notes_fail_non_auth(client: TestClient):
     response = client.get("/notes")
     assert response.status_code == 401
+
+def test_read_note_fail_wrong_user(client: TestClient):
+    response = client.post("/token",
+                           data={
+                               "username": 'admin',
+                               "password": "admin123"
+                           })
+    access_token = response.json()["access_token"]
+
+    response = client.get("/notes/1",
+                          headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+
+def test_delete_note_success(client: TestClient, access_token: str):
+    response = client.delete("/notes/1",
+                             headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 204
 
 
 def test_create_note_success_no_spellcheck(client: TestClient,
@@ -130,7 +195,6 @@ def test_create_note_success_no_spellcheck(client: TestClient,
     assert response.json()['title'] == "название запски"
     assert response.json()['content'] == "содержание замткеи"
     assert response.json()['author_username'] == "user1"
-
 
 def test_create_note_fail_spellcheck(client: TestClient, access_token: str):
     response = client.post("/notes",
@@ -153,20 +217,13 @@ def test_create_note_success_spellcheck(client: TestClient, access_token: str):
     assert response.status_code == 201
     assert response.json()['title'] == "название заметки"
     assert response.json()['content'] == "содержание заметки"
-    assert response.json()['author']['username'] == "user1"
+    assert response.json()['author_username'] == "user1"
 
-
-def test_read_note_fail_wrong_user(client: TestClient):
-    response = client.post("/token",
-                           data={
-                               "username": 'admin',
-                               "password": "admin123"
-                           })
-    access_token = response.json()["access_token"]
-
-    response = client.get("/notes/1",
+def test_read_notes_success(client: TestClient, access_token: str):
+    response = client.get("/notes",
                           headers={"Authorization": f"Bearer {access_token}"})
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert len(response.json()) == 2
 
 
 def test_read_notes_empty_wrong_user(client: TestClient):

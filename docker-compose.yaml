@@ -11,7 +11,7 @@ services:
     ports:
       - 1234:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d store_db"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d mydb"]
       interval: 10s
       retries: 5
   db-test:
@@ -26,7 +26,7 @@ services:
     ports:
       - 1233:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d store_db_test"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d test_db"]
       interval: 10s
       retries: 5
   web:
